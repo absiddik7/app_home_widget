@@ -13,20 +13,37 @@ import es.antonborri.home_widget.HomeWidgetPlugin
 class AllTodoWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            val intent = Intent(context, AllTodoWidgetService::class.java).apply {
+            // Adapter intent for the list view
+            val serviceIntent = Intent(context, AllTodoWidgetService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME)) // Make intent unique
+                data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
             }
 
+            // RemoteViews to control the widget layout
             val views = RemoteViews(context.packageName, R.layout.all_todo_widget).apply {
                 setTextViewText(R.id.widget_title, "Today's Tasks")
-                setRemoteAdapter(R.id.widget_list, intent)
+                setRemoteAdapter(R.id.widget_list, serviceIntent)
                 setEmptyView(R.id.widget_list, R.id.empty_view)
             }
 
+            // App launch intent for the plus icon
+            val launchIntent = Intent(context, MainActivity::class.java)
+            launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                launchIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            // Connect plus icon with launch intent
+            views.setOnClickPendingIntent(R.id.widget_add_icon, pendingIntent)
+
+            // Update the widget
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
+
 
     override fun onEnabled(context: Context) {
         // Optional: logic for when the first widget is created

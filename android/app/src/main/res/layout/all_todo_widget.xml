@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,16 +8,35 @@
     android:padding="8dp"
     android:background="@android:color/white">
 
-    <TextView
-        android:id="@+id/widget_title"
+    <!-- Title with Plus Icon -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Today's Tasks"
-        android:textStyle="bold"
-        android:textSize="18sp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="4dp"
-        android:textColor="@android:color/black" />
+        tools:ignore="UseCompoundDrawables">
 
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Today's Tasks"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black" />
+
+        <ImageView
+            android:id="@+id/widget_add_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_input_add"
+            android:contentDescription="Add Task"
+            android:tint="@android:color/black" />
+    </LinearLayout>
+
+    <!-- Task List -->
     <ListView
         android:id="@+id/widget_list"
         android:layout_width="match_parent"
@@ -25,6 +45,7 @@
         android:scrollbars="vertical"
         android:layout_marginTop="4dp" />
 
+    <!-- Empty View -->
     <TextView
         android:id="@+id/empty_view"
         android:layout_width="match_parent"
