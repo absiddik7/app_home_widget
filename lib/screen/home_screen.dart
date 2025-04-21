@@ -1,12 +1,9 @@
-import 'dart:convert';
-
+import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:home_widget_practice/widgets/task_list_item.dart';
-
+import 'package:provider/provider.dart';
 import '../model/task_model.dart';
 import '../provider/task_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,9 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String appGroupId = "group.homeScreenWidget";
   String iOSWidgetName = "MyHomeWidget";
   String androidWidgetName = "TodoWidget";
-  String androidWidgetName2 = "AllTodoWidget";
   String dataKey = "text_from_flutter";
-  String todoDataKey = "todo_data_key";
 
   @override
   void initState() {
@@ -36,21 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     String data = "Cont = $_counter";
     await HomeWidget.saveWidgetData(dataKey, data);
-    await HomeWidget.updateWidget(
-      name: iOSWidgetName,
-      iOSName: iOSWidgetName,
-      androidName: androidWidgetName,
-      qualifiedAndroidName: "com.example.home_widget_practice.AllTodoWidget",
-    );
-  }
-
-  void updateTodoWidget(List<Task> tasks) async {
-    final taskData =
-        tasks.map((task) => {'id': task.id, 'title': task.title, 'isCompleted': task.isCompleted}).toList();
-
-    final jsonString = jsonEncode(taskData);
-    await HomeWidget.saveWidgetData(todoDataKey, jsonString);
-    await HomeWidget.updateWidget(iOSName: iOSWidgetName, androidName: androidWidgetName2);
+    await HomeWidget.updateWidget(iOSName: iOSWidgetName, androidName: androidWidgetName);
   }
 
   @override
@@ -62,30 +43,21 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<TaskProvider>(
         builder: (context, taskProvider, child) {
-          return FutureBuilder<List<Task>>(
-            future: taskProvider.tasks,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No tasks available'));
-              } else {
-                return ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    return TaskListItem(task: snapshot.data![index]);
-                  },
-                );
-              }
+          final tasks = taskProvider.tasks;
+          if (tasks.isEmpty) {
+            return const Center(child: Text('No tasks available'));
+          }
+          return ListView.builder(
+            itemCount: tasks.length,
+            itemBuilder: (context, index) {
+              return TaskListItem(task: tasks[index]);
             },
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          incrementCounter();
+        onPressed: () {
+          //incrementCounter();
           _showAddTaskDialog(context);
         },
         child: const Icon(Icons.add),
@@ -110,15 +82,13 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: () async {
                 if (controller.text.isNotEmpty) {
-                  Provider.of<TaskProvider>(context, listen: false).addTask(
+                  await Provider.of<TaskProvider>(context, listen: false).addTask(
                     Task(
                       id: DateTime.now().millisecondsSinceEpoch,
                       title: controller.text,
                       isCompleted: false,
                     ),
                   );
-                  final tasks = await Provider.of<TaskProvider>(context, listen: false).tasks;
-                  updateTodoWidget(tasks);
                   Navigator.pop(context);
                 }
               },
